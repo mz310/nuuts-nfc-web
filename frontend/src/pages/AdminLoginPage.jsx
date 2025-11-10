@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
-import './AdminLoginPage.css';
 
 function AdminLoginPage() {
   const navigate = useNavigate();
@@ -31,22 +30,22 @@ function AdminLoginPage() {
   }
 
   return (
-    <div className="admin-wrap">
-      <div className="admin-card" style={{ maxWidth: '360px', margin: '80px auto' }}>
-        <h3>Admin Login</h3>
-        {error && <p className="err">{error}</p>}
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-6">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-amber-200/20 rounded-xl p-6 mb-6 shadow-sm transition-shadow duration-250 hover:shadow-md max-w-[360px] mx-auto mt-20">
+        <h3 className="mb-4 text-slate-900 dark:text-slate-100 text-lg font-semibold">Admin Login</h3>
+        {error && <p className="text-red-600 dark:text-red-500 font-medium mb-2">{error}</p>}
         <form onSubmit={handleSubmit}>
-          <div className="row">
+          <div className="flex gap-2 flex-wrap mb-2">
             <input
               name="username"
               placeholder="Username"
               value={formData.username}
               onChange={handleChange}
               required
-              style={{ width: '100%' }}
+              className="w-full py-1.5 px-2 rounded-md border border-slate-300 dark:border-slate-700 mb-2 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs font-sans transition-all duration-250 focus:outline-none focus:border-amber-500 dark:focus:border-amber-300 focus:ring-2 focus:ring-amber-500/20 dark:focus:ring-amber-300/20"
             />
           </div>
-          <div className="row">
+          <div className="flex gap-2 flex-wrap mb-2">
             <input
               type="password"
               name="password"
@@ -54,10 +53,14 @@ function AdminLoginPage() {
               value={formData.password}
               onChange={handleChange}
               required
-              style={{ width: '100%' }}
+              className="w-full py-1.5 px-2 rounded-md border border-slate-300 dark:border-slate-700 mb-2 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs font-sans transition-all duration-250 focus:outline-none focus:border-amber-500 dark:focus:border-amber-300 focus:ring-2 focus:ring-amber-500/20 dark:focus:ring-amber-300/20"
             />
           </div>
-          <button type="submit" disabled={loading} style={{ width: '100%' }}>
+          <button 
+            type="submit" 
+            disabled={loading} 
+            className={`btn w-full ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
             {loading ? 'Signing in...' : 'Sign in'}
           </button>
         </form>
@@ -67,4 +70,3 @@ function AdminLoginPage() {
 }
 
 export default AdminLoginPage;
-

@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../api';
-import './HomePage.css';
 
 function ResolvePage() {
   const { uid } = useParams();
@@ -30,4 +29,3 @@ function ResolvePage() {
 }
 
 export default ResolvePage;
-

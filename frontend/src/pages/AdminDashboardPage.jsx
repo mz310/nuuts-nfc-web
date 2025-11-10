@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
-import './AdminDashboardPage.css';
 
 function AdminDashboardPage() {
   const navigate = useNavigate();
@@ -15,14 +14,14 @@ function AdminDashboardPage() {
   const [txForm, setTxForm] = useState({ uid: '', amount: '', user_label: '' });
   const [regForm, setRegForm] = useState({ uid: '', name: '', nickname: '', profession: '' });
   
-  // Per-user amount input states
-  const [userAmounts, setUserAmounts] = useState({});
+  // Per-user loading states
   const [loadingUsers, setLoadingUsers] = useState({});
 
   useEffect(() => {
     loadDashboard();
     loadLastScan();
-    const scanInterval = setInterval(loadLastScan, 1000);
+    // Poll less frequently - only every 5 seconds instead of every second
+    const scanInterval = setInterval(loadLastScan, 5000);
     return () => clearInterval(scanInterval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
@@ -42,27 +41,61 @@ function AdminDashboardPage() {
   async function loadLastScan() {
     try {
       const data = await api.getLastScan();
-      setLastScan(data);
       
-      if (data.uid) {
+      // Only update if UID actually changed (avoid unnecessary updates)
+      if (data.uid && data.uid !== lastScan?.uid) {
+        setLastScan(data);
+        
         if (data.user) {
           // User exists - show transaction form
-          setTxForm({
-            uid: data.uid,
-            user_label: `ID ${data.user.id} · ${data.user.name}`,
-            amount: ''
+          // Only update if UID changed (don't overwrite if user is typing amount)
+          setTxForm(prev => {
+            // If same UID and user is entering amount, preserve the amount
+            if (prev.uid === data.uid) {
+              return {
+                uid: data.uid,
+                user_label: `ID ${data.user.id} · ${data.user.name}`,
+                amount: prev.amount // Preserve the amount user is typing
+              };
+            }
+            // If UID changed, update everything
+            return {
+              uid: data.uid,
+              user_label: `ID ${data.user.id} · ${data.user.name}`,
+              amount: ''
+            };
           });
           setRegForm({ uid: '', name: '', nickname: '', profession: '' });
         } else {
           // No user - show registration form
-          setRegForm({
-            uid: data.uid,
-            name: '',
-            nickname: '',
-            profession: ''
+          // Only update if UID changed (don't overwrite if user is typing)
+          setRegForm(prev => {
+            if (prev.uid === data.uid && (prev.name || prev.nickname || prev.profession)) {
+              return prev;
+            }
+            return {
+              uid: data.uid,
+              name: '',
+              nickname: '',
+              profession: ''
+            };
           });
-          setTxForm({ uid: '', user_label: '', amount: '' });
+          // Only clear txForm if UID changed
+          setTxForm(prev => {
+            if (prev.uid === data.uid) {
+              return prev;
+            }
+            return { uid: '', user_label: '', amount: '' };
+          });
         }
+      } else if (!data.uid && lastScan?.uid) {
+        // UID was cleared - reset forms
+        setLastScan(data);
+        setTxForm({ uid: '', user_label: '', amount: '' });
+        setRegForm({ uid: '', name: '', nickname: '', profession: '' });
+      } else {
+        // No change - just update lastScan state without triggering form updates
+        setLastScan(data);
       }
     } catch (error) {
       console.error('Failed to load last scan:', error);
@@ -77,6 +110,12 @@ function AdminDashboardPage() {
       setMessageOk(true);
       setTxForm(prev => ({ ...prev, amount: '' }));
       loadDashboard();
+      
+      // Clear form and message after short delay
+      setTimeout(() => {
+        setTxForm({ uid: '', amount: '', user_label: '' });
+        setMessage(null);
+      }, 2000);
     } catch (error) {
       setMessage(error.message);
       setMessageOk(false);
@@ -99,49 +138,6 @@ function AdminDashboardPage() {
     } catch (error) {
       setMessage(error.message);
       setMessageOk(false);
-    }
-  }
-
-  async function handleAddAmount(user) {
-    const amount = userAmounts[user.id]?.trim();
-    if (!amount || parseFloat(amount) <= 0) {
-      setMessage('Дүн оруулна уу (0-с их байх ёстой)');
-      setMessageOk(false);
-      return;
-    }
-
-    // Check if user has UID (required by backend)
-    if (!user.uid) {
-      setMessage(`Алдаа: ${user.name} хэрэглэгчид UID байхгүй байна. Эхлээд UID холбох хэрэгтэй.`);
-      setMessageOk(false);
-      return;
-    }
-
-    setLoadingUsers(prev => ({ ...prev, [user.id]: true }));
-    setMessage(null);
-
-    try {
-      // Backend requires UID to find the user
-      const txData = {
-        uid: user.uid,
-        amount: amount,
-        user_label: `ID ${user.id} · ${user.name}${user.nickname ? ` (${user.nickname})` : ''}`
-      };
-
-      await api.adminQuickAddTx(txData);
-      setMessage(`Амжилттай: ${user.name}-д ${parseFloat(amount).toLocaleString('en-US')} ₮ нэмлээ.`);
-      setMessageOk(true);
-      
-      // Clear the input for this user
-      setUserAmounts(prev => ({ ...prev, [user.id]: '' }));
-      
-      // Refresh dashboard to show updated totals
-      await loadDashboard();
-    } catch (error) {
-      setMessage(`Алдаа (${user.name}): ${error.message}`);
-      setMessageOk(false);
-    } finally {
-      setLoadingUsers(prev => ({ ...prev, [user.id]: false }));
     }
   }
 
@@ -190,237 +186,233 @@ function AdminDashboardPage() {
   }
 
   return (
-    <div className="admin-wrap">
-      <header className="admin-header">
-        <div><strong>Admin · Mazaalai Conservation</strong></div>
-        <div className="nav">
-          <a href="/admin">Dashboard</a>
-          <button onClick={handleLogout} className="btn-link">Logout</button>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-6">
+      <header className="flex justify-between items-center mb-8 pb-4 border-b border-slate-200 dark:border-amber-200/20">
+        <div className="text-xl font-semibold text-slate-900 dark:text-slate-100">Admin · Mazaalai Conservation</div>
+        <div className="flex gap-4 items-center">
+          <a 
+            href="/admin" 
+            className="text-slate-600 dark:text-slate-400 no-underline text-base px-2 py-1 rounded-md transition-all duration-250 font-medium bg-transparent border-none cursor-pointer font-sans hover:text-amber-600 dark:hover:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-300/10"
+          >
+            Dashboard
+          </a>
+          <button 
+            onClick={handleLogout} 
+            className="text-slate-600 dark:text-slate-400 text-base px-2 py-1 rounded-md transition-all duration-250 font-medium bg-transparent border-none cursor-pointer font-sans hover:text-amber-600 dark:hover:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-300/10"
+          >
+            Logout
+          </button>
         </div>
       </header>
 
-      <div className="grid">
-        <div className="admin-card">
-          <h3>Live scan</h3>
-          <p>Сүүлд ирсэн UID: <b>{lastScan?.uid || '—'}</b>
-            <span className="muted">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-amber-200/20 rounded-xl p-6 shadow-sm transition-shadow duration-250 hover:shadow-md">
+          <h3 className="mb-4 text-slate-900 dark:text-slate-100 text-lg font-semibold">Live scan</h3>
+          <p className="text-slate-900 dark:text-slate-100">
+            Сүүлд ирсэн UID: <b>{lastScan?.uid || '—'}</b>
+            <span className="text-slate-600 dark:text-slate-400 text-xs">
               {lastScan?.user ? ' (бүртгэлтэй)' : lastScan?.uid ? ' (бүртгэлгүй)' : ''}
             </span>
           </p>
           {lastScan?.user && (
-            <p className="muted">
+            <p className="text-slate-600 dark:text-slate-400 text-xs">
               ID {lastScan.user.id} · {lastScan.user.name}{lastScan.user.nickname ? ` (${lastScan.user.nickname})` : ''}
             </p>
           )}
-          <p className="muted">Сүүлд уншсан UID-аар доорх Action хэсэг автоматаар солигдоно.</p>
+          <p className="text-slate-600 dark:text-slate-400 text-xs">Сүүлд уншсан UID-аар доорх Action хэсэг автоматаар солигдоно.</p>
         </div>
 
-        <div className="admin-card">
-          <h3>Action</h3>
+        <div className="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-amber-200/20 rounded-xl p-6 shadow-sm transition-shadow duration-250 hover:shadow-md">
+          <h3 className="mb-4 text-slate-900 dark:text-slate-100 text-lg font-semibold">Action</h3>
           {txForm.uid && (
             <form id="formAddTx" onSubmit={handleQuickAddTx}>
-              <input type="text" name="uid" value={txForm.uid} readOnly style={{ width: '100%', marginBottom: 8, background: '#f6f4ef', color: '#664400' }} />
-              <div className="row">
+              <input 
+                type="text" 
+                name="uid" 
+                value={txForm.uid} 
+                readOnly 
+                className="w-full mb-2 py-1.5 px-2 rounded-md border border-slate-300 dark:border-slate-700 text-xs bg-amber-50 dark:bg-amber-50 text-amber-900 dark:text-amber-900"
+              />
+              <div className="flex gap-2 flex-wrap mb-2">
                 <input
                   name="user_label"
                   value={txForm.user_label}
                   readOnly
-                  style={{ flex: 2, background: '#f6f4ef', color: '#5c4634', fontWeight: '500', letterSpacing: '0.03em' }}
+                  className="flex-[2] py-1.5 px-2 rounded-md border border-slate-300 dark:border-slate-700 mb-2 bg-amber-50 dark:bg-amber-50 text-amber-900 dark:text-amber-900 font-medium tracking-wide text-xs font-sans"
                 />
                 <input
                   name="amount"
-                  type="number"
-                  step="0.01"
-                  min="0.01"
+                  type="text"
+                  inputMode="decimal"
                   placeholder="Дүн (₮)"
                   value={txForm.amount}
-                  onChange={(e) => setTxForm(prev => ({ ...prev, amount: e.target.value }))}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    // Allow only numbers and decimal point
+                    if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                      setTxForm(prev => ({ ...prev, amount: value }));
+                    }
+                  }}
                   required
-                  style={{ width: '120px' }}
+                  className="w-[120px] py-1.5 px-2 rounded-md border border-slate-300 dark:border-slate-700 mb-2 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs font-sans transition-all duration-250 focus:outline-none focus:border-amber-500 dark:focus:border-amber-300 focus:ring-2 focus:ring-amber-500/20 dark:focus:ring-amber-300/20"
                 />
               </div>
-              <button type="submit" style={{ marginTop: 8 }}>Дүн нэмэх</button>
+              <button type="submit" className="btn mt-2">Дүн нэмэх</button>
             </form>
           )}
 
           {regForm.uid && (
             <form id="formQuickReg" onSubmit={handleQuickRegister}>
-              <input type="text" name="uid" value={regForm.uid} readOnly style={{ width: '100%', marginBottom: 8, background: '#f6f4ef', color: '#664400' }} />
-              <div className="row">
+              <input 
+                type="text" 
+                name="uid" 
+                value={regForm.uid} 
+                readOnly 
+                className="w-full mb-2 py-1.5 px-2 rounded-md border border-slate-300 dark:border-slate-700 text-xs bg-amber-50 dark:bg-amber-50 text-amber-900 dark:text-amber-900"
+              />
+              <div className="flex gap-2 flex-wrap mb-2">
                 <input
                   name="name"
                   placeholder="Нэр"
                   value={regForm.name}
                   onChange={(e) => setRegForm(prev => ({ ...prev, name: e.target.value }))}
                   required
-                  style={{ flex: 1 }}
+                  className="flex-1 py-1.5 px-2 rounded-md border border-slate-300 dark:border-slate-700 mb-2 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs font-sans transition-all duration-250 focus:outline-none focus:border-amber-500 dark:focus:border-amber-300 focus:ring-2 focus:ring-amber-500/20 dark:focus:ring-amber-300/20"
                 />
                 <input
                   name="nickname"
                   placeholder="Хоч"
                   value={regForm.nickname}
                   onChange={(e) => setRegForm(prev => ({ ...prev, nickname: e.target.value }))}
+                  className="flex-1 py-1.5 px-2 rounded-md border border-slate-300 dark:border-slate-700 mb-2 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs font-sans transition-all duration-250 focus:outline-none focus:border-amber-500 dark:focus:border-amber-300 focus:ring-2 focus:ring-amber-500/20 dark:focus:ring-amber-300/20"
                 />
                 <input
                   name="profession"
                   placeholder="Мэргэжил"
                   value={regForm.profession}
                   onChange={(e) => setRegForm(prev => ({ ...prev, profession: e.target.value }))}
+                  className="flex-1 py-1.5 px-2 rounded-md border border-slate-300 dark:border-slate-700 mb-2 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs font-sans transition-all duration-250 focus:outline-none focus:border-amber-500 dark:focus:border-amber-300 focus:ring-2 focus:ring-amber-500/20 dark:focus:ring-amber-300/20"
                 />
               </div>
-              <button type="submit">Бүртгээд холбох</button>
+              <button type="submit" className="btn">Бүртгээд холбох</button>
             </form>
           )}
           
           {!txForm.uid && !regForm.uid && (
             <form id="formQuickRegManual" onSubmit={handleQuickRegister}>
-              <p className="muted" style={{ marginBottom: 8 }}>UID байхгүй бол автоматаар random UID үүснэ (NFC tag ID-тэй адил)</p>
-              <div className="row">
+              <p className="text-slate-600 dark:text-slate-400 text-xs mb-2">UID байхгүй бол автоматаар random UID үүснэ (NFC tag ID-тэй адил)</p>
+              <div className="flex gap-2 flex-wrap mb-2">
                 <input
                   name="name"
                   placeholder="Нэр *"
                   value={regForm.name}
                   onChange={(e) => setRegForm(prev => ({ ...prev, name: e.target.value }))}
                   required
-                  style={{ flex: 1 }}
+                  className="flex-1 py-1.5 px-2 rounded-md border border-slate-300 dark:border-slate-700 mb-2 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs font-sans transition-all duration-250 focus:outline-none focus:border-amber-500 dark:focus:border-amber-300 focus:ring-2 focus:ring-amber-500/20 dark:focus:ring-amber-300/20"
                 />
                 <input
                   name="nickname"
                   placeholder="Хоч"
                   value={regForm.nickname}
                   onChange={(e) => setRegForm(prev => ({ ...prev, nickname: e.target.value }))}
+                  className="flex-1 py-1.5 px-2 rounded-md border border-slate-300 dark:border-slate-700 mb-2 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs font-sans transition-all duration-250 focus:outline-none focus:border-amber-500 dark:focus:border-amber-300 focus:ring-2 focus:ring-amber-500/20 dark:focus:ring-amber-300/20"
                 />
                 <input
                   name="profession"
                   placeholder="Мэргэжил"
                   value={regForm.profession}
                   onChange={(e) => setRegForm(prev => ({ ...prev, profession: e.target.value }))}
+                  className="flex-1 py-1.5 px-2 rounded-md border border-slate-300 dark:border-slate-700 mb-2 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs font-sans transition-all duration-250 focus:outline-none focus:border-amber-500 dark:focus:border-amber-300 focus:ring-2 focus:ring-amber-500/20 dark:focus:ring-amber-300/20"
                 />
               </div>
-              <button type="submit">Хэрэглэгч үүсгэх (UID автоматаар)</button>
+              <button type="submit" className="btn">Хэрэглэгч үүсгэх (UID автоматаар)</button>
             </form>
           )}
 
           {message && (
-            <p className={messageOk ? "ok" : "err"}>{message}</p>
+            <p className={`mt-2 font-medium ${messageOk ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'}`}>
+              {message}
+            </p>
           )}
         </div>
 
-        <div className="admin-card">
-          <h3>Хэрэглэгчид</h3>
+        <div className="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-amber-200/20 rounded-xl p-6 shadow-sm transition-shadow duration-250 hover:shadow-md">
+          <h3 className="mb-4 text-slate-900 dark:text-slate-100 text-lg font-semibold">Хэрэглэгчид</h3>
           <form onSubmit={(e) => { e.preventDefault(); loadDashboard(); }}>
-            <div className="row">
+            <div className="flex gap-2 flex-wrap mb-2">
               <input
                 name="q"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Нэр/хоч/UID/мэргэжил"
-                style={{ flex: 1 }}
+                className="flex-1 py-1.5 px-2 rounded-md border border-slate-300 dark:border-slate-700 mb-2 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs font-sans transition-all duration-250 focus:outline-none focus:border-amber-500 dark:focus:border-amber-300 focus:ring-2 focus:ring-amber-500/20 dark:focus:ring-amber-300/20"
               />
-              <button type="submit">Хайх</button>
+              <button type="submit" className="btn">Хайх</button>
             </div>
           </form>
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Нэр</th>
-                <th>Хоч</th>
-                <th>UID</th>
-                <th>Нийт</th>
-                <th>Дүн нэмэх</th>
-                <th>Тест Scan</th>
-                <th>Үйлдэл</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.length > 0 ? (
-                users.map((u) => (
-                  <tr key={u.id}>
-                    <td>{u.id}</td>
-                    <td>{u.name}</td>
-                    <td>{u.nickname || ''}</td>
-                    <td>{u.uid || '-'}</td>
-                    <td>{u.total ? u.total.toLocaleString("en-US") : '0'} ₮</td>
-                    <td>
-                      <div className="row" style={{ margin: 0, gap: '4px' }}>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0.01"
-                          placeholder="Дүн"
-                          value={userAmounts[u.id] || ''}
-                          onChange={(e) => setUserAmounts(prev => ({ ...prev, [u.id]: e.target.value }))}
-                          style={{ width: '80px', padding: '4px 6px', fontSize: '0.75rem' }}
-                          onKeyPress={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              handleAddAmount(u);
-                            }
-                          }}
-                        />
+          <div className="overflow-x-auto mt-4">
+            <table className="w-full border-collapse text-sm">
+              <thead>
+                <tr>
+                  <th className="p-2 border-b border-slate-200 dark:border-amber-200/10 text-left font-semibold text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-slate-900">ID</th>
+                  <th className="p-2 border-b border-slate-200 dark:border-amber-200/10 text-left font-semibold text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-slate-900">Нэр</th>
+                  <th className="p-2 border-b border-slate-200 dark:border-amber-200/10 text-left font-semibold text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-slate-900">Хоч</th>
+                  <th className="p-2 border-b border-slate-200 dark:border-amber-200/10 text-left font-semibold text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-slate-900">UID</th>
+                  <th className="p-2 border-b border-slate-200 dark:border-amber-200/10 text-left font-semibold text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-slate-900">Нийт</th>
+                  <th className="p-2 border-b border-slate-200 dark:border-amber-200/10 text-left font-semibold text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-slate-900">Тест Scan</th>
+                  <th className="p-2 border-b border-slate-200 dark:border-amber-200/10 text-left font-semibold text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-slate-900">Үйлдэл</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.length > 0 ? (
+                  users.map((u) => (
+                    <tr 
+                      key={u.id} 
+                      className="transition-colors duration-150 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    >
+                      <td className="p-2 border-b border-slate-200 dark:border-amber-200/10 text-left text-slate-900 dark:text-slate-100">{u.id}</td>
+                      <td className="p-2 border-b border-slate-200 dark:border-amber-200/10 text-left text-slate-900 dark:text-slate-100">{u.name}</td>
+                      <td className="p-2 border-b border-slate-200 dark:border-amber-200/10 text-left text-slate-900 dark:text-slate-100">{u.nickname || ''}</td>
+                      <td className="p-2 border-b border-slate-200 dark:border-amber-200/10 text-left text-slate-900 dark:text-slate-100">{u.uid || '-'}</td>
+                      <td className="p-2 border-b border-slate-200 dark:border-amber-200/10 text-left text-slate-900 dark:text-slate-100">{u.total ? u.total.toLocaleString("en-US") : '0'} ₮</td>
+                      <td className="p-2 border-b border-slate-200 dark:border-amber-200/10 text-left">
                         <button
                           type="button"
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            handleAddAmount(u);
+                            handleTestScan(u);
                           }}
-                          disabled={!u.uid}
-                          style={{ 
-                            padding: '4px 8px', 
-                            fontSize: '0.75rem',
-                            opacity: (!u.uid) ? 0.6 : 1,
-                            cursor: (!u.uid) ? 'not-allowed' : 'pointer',
-                            pointerEvents: (!u.uid) ? 'none' : 'auto'
-                          }}
-                          title={!u.uid ? 'UID байхгүй' : 'Дүн нэмэх'}
+                          disabled={!u.uid || loadingUsers[u.id]}
+                          className={`btn py-1 px-2 text-xs ${!u.uid ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''}`}
+                          title={!u.uid ? 'UID байхгүй' : 'UID-г уншуулж байгаа мэт тест хийх'}
                         >
-                          {loadingUsers[u.id] ? '...' : '+'}
+                          {loadingUsers[u.id] ? '...' : '📱'}
                         </button>
-                      </div>
-                    </td>
-                    <td>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleTestScan(u);
-                        }}
-                        disabled={!u.uid}
-                        style={{ 
-                          padding: '4px 8px', 
-                          fontSize: '0.75rem',
-                          opacity: (!u.uid) ? 0.6 : 1,
-                          cursor: (!u.uid) ? 'not-allowed' : 'pointer',
-                          pointerEvents: (!u.uid) ? 'none' : 'auto'
-                        }}
-                        title={!u.uid ? 'UID байхгүй' : 'UID-г уншуулж байгаа мэт тест хийх'}
-                      >
-                        {loadingUsers[u.id] ? '...' : '📱'}
-                      </button>
-                    </td>
-                    <td>
-                      <button 
-                        onClick={() => handleDeleteUser(u.id)}
-                        style={{ fontSize: '0.75rem', padding: '4px 8px' }}
-                      >
-                        Delete
-                      </button>
+                      </td>
+                      <td className="p-2 border-b border-slate-200 dark:border-amber-200/10 text-left">
+                        <button 
+                          onClick={() => handleDeleteUser(u.id)}
+                          className="btn text-xs py-1 px-2"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="7" className="p-2 border-b border-slate-200 dark:border-amber-200/10 text-left text-slate-600 dark:text-slate-400">
+                      Одоогоор хэрэглэгч алга.
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr><td colSpan="8">Одоогоор хэрэглэгч алга.</td></tr>
-              )}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
+          </div>
           
           {message && (
-            <div style={{ marginTop: '12px', padding: '8px', borderRadius: '4px', 
-                         background: messageOk ? 'rgba(22, 163, 74, 0.1)' : 'rgba(220, 38, 38, 0.1)',
-                         color: messageOk ? 'var(--color-forest-light)' : '#dc2626' }}>
+            <div className={`mt-3 p-2 rounded-md ${messageOk ? 'bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-500' : 'bg-red-100 dark:bg-red-500/10 text-red-700 dark:text-red-500'}`}>
               {message}
             </div>
           )}
@@ -431,4 +423,3 @@ function AdminDashboardPage() {
 }
 
 export default AdminDashboardPage;
-

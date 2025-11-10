@@ -1,6 +1,5 @@
 import { Outlet, Link } from 'react-router-dom';
 import { useTheme } from '../contexts/useTheme';
-import './Layout.css';
 
 function Layout() {
   const { theme, toggleTheme } = useTheme();
@@ -24,7 +23,7 @@ function Layout() {
         </Link>
         <div className="header-right">
           <div className="timer" id="timer">Last update · --:--</div>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div className="flex items-center">
             <nav className="top-nav" role="navigation">
               <Link to="/">Leaderboard</Link>
               <Link to="/about">About Mazaalai</Link>
@@ -58,8 +57,8 @@ function Layout() {
               <path d="M7.5 2h9A5.5 5.5 0 0 1 22 7.5v9A5.5 5.5 0 0 1 16.5 22h-9A5.5 5.5 0 0 1 2 16.5v-9A5.5 5.5 0 0 1 7.5 2zm0 2C5.57 4 4 5.57 4 7.5v9C4 18.99 5.01 20 6.5 20h11a2.5 2.5 0 0 0 2.5-2.5v-9C20 5.57 18.43 4 16.5 4h-9zM17 7.25a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5zM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 2a3 3 0 1 0 .001 6.001A3 3 0 0 0 12 9z"/>
             </svg>
             Instagram:
-            <a href="https://www.instagram.com/baganaa59/" target="_blank" rel="noopener">
-              @baganaa59
+            <a href="https://www.instagram.com/nyytsxaalga/" target="_blank" rel="noopener">
+              @nyytsxaalga
             </a>
           </div>
           <div>
@@ -75,4 +74,3 @@ function Layout() {
 }
 
 export default Layout;
-

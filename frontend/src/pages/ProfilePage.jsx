@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api } from '../api';
-import './ProfilePage.css';
 
 function ProfilePage() {
   const { id } = useParams();
@@ -37,7 +36,7 @@ function ProfilePage() {
       <div className="hero">
         <div className="hero-title">Алдаа</div>
         <div className="hero-sub">{error || 'Хэрэглэгч олдсонгүй'}</div>
-        <p className="hero-sub" style={{ marginTop: 'var(--space-lg)' }}>
+        <p className="mt-6">
           <Link to="/" className="btn btn-outline">← Leaderboard руу буцах</Link>
         </p>
       </div>
@@ -50,9 +49,11 @@ function ProfilePage() {
   return (
     <div className="hero">
       <div className="hero-title">{label}</div>
-      <div className="hero-sub">Нийт хөнгөлөлт: <strong>{total} ₮</strong></div>
+      <div className="hero-sub">
+        Нийт хөнгөлөлт: <strong>{total} ₮</strong>
+      </div>
       <p className="hero-sub">ID: {user.id}{user.profession ? " · " + user.profession : ""}</p>
-      <p className="hero-sub" style={{ marginTop: 'var(--space-lg)' }}>
+      <p className="mt-6">
         <Link to="/" className="btn btn-outline">← Leaderboard руу буцах</Link>
       </p>
     </div>
@@ -60,4 +61,3 @@ function ProfilePage() {
 }
 
 export default ProfilePage;
-

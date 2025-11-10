@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { useScrollAnimation } from '../utils/useScrollAnimation';
-import './HomePage.css';
 
 function HomePage() {
   const [rows, setRows] = useState([]);
@@ -51,11 +50,11 @@ function HomePage() {
       <div className="hero-sub">
         Байгаль, зэрлэг амьтны төлөө тууштай зүтгэж буй хүмүүсийн амьд жагсаалт
       </div>
-      <div className="hero-sub" style={{ marginTop: 'var(--space-md)', fontSize: 'var(--font-size-base)' }}>
+      <div className="hero-sub mt-4 text-sm">
         Энэхүү систем нь <strong>Говийн эзэн Мазаалай</strong> болон Монголын байгалийг хамгаалах 
         бодит баатруудыг хүлээн зөвшөөрч, тэдний хувь нэмрийг тэмдэглэх зорилготой.
       </div>
-      <div style={{ marginTop: 'var(--space-lg)' }}>
+      <div className="mt-6">
         <Link to="/about" className="btn">Мазаалай тухай дэлгэрэнгүй</Link>
       </div>
     </div>
@@ -110,7 +109,7 @@ function HomePage() {
               Зөвхөн хэрэглэгчийн хоч (эсвэл нэр) + нийт хөнгөлөлтийн дүн.
             </div>
           </div>
-          <div className="chip">
+          <div className="chip-total">
             <span>Players: {rows.length}</span>
           </div>
         </div>
@@ -125,15 +124,21 @@ function HomePage() {
             const label = r.label || `Player ${r.id}`;
             const total = r.total.toLocaleString("en-US");
 
-            let cls = "";
-            if (rank === 1) cls = " gold";
-            else if (rank === 2) cls = " silver";
-            else if (rank === 3) cls = " bronze";
-            else if (rank === 4) cls = " r4";
-            else if (rank === 5) cls = " r5";
+            let rowClass = "row";
+            if (rank === 1) {
+              rowClass = "row gold";
+            } else if (rank === 2) {
+              rowClass = "row silver";
+            } else if (rank === 3) {
+              rowClass = "row bronze";
+            } else if (rank === 4) {
+              rowClass = "row r4";
+            } else if (rank === 5) {
+              rowClass = "row r5";
+            }
 
             return (
-              <Link key={r.id} to={`/u/${r.id}`} className={`row${cls}`}>
+              <Link key={r.id} to={`/u/${r.id}`} className={rowClass}>
                 <div className="rank">#{rank}</div>
                 <div className="name">{label}</div>
                 <div className="amt">{total}</div>
@@ -147,4 +152,3 @@ function HomePage() {
 }
 
 export default HomePage;
-

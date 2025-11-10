@@ -8,7 +8,6 @@ import RegisterPage from './pages/RegisterPage';
 import ResolvePage from './pages/ResolvePage';
 import AdminLoginPage from './pages/AdminLoginPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
-import './App.css';
 
 function App() {
   return (

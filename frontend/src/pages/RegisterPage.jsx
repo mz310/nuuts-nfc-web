@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../api';
-import './RegisterPage.css';
 
 function RegisterPage() {
   const [searchParams] = useSearchParams();
@@ -71,7 +70,7 @@ function RegisterPage() {
         <p className="hero-sub">
           NFC writer-аар UID уншуулбал профайл линк бичигдэнэ.
         </p>
-        <div style={{ marginTop: 'var(--space-xl)', display: 'flex', gap: 'var(--space-md)', justifyContent: 'center', flexWrap: 'wrap' }}>
+        <div className="mt-8 flex gap-4 justify-center flex-wrap">
           <a href={`/u/${userId}`} className="btn">Миний профайлыг харах</a>
           <a href="/" className="btn btn-outline">Leaderboard руу буцах</a>
         </div>
@@ -93,13 +92,13 @@ function RegisterPage() {
       <div className="hero-title">NFC бүртгэл</div>
       <div className="hero-sub">{msg}</div>
       {isCheckingUID && (
-        <p style={{ marginTop: 'var(--space-sm)', color: 'var(--text-secondary)', fontSize: 'var(--font-size-sm)' }}>
+        <p className="mt-2 text-slate-400 dark:text-slate-400 text-sm">
           UID шалгаж байна...
         </p>
       )}
-      <form onSubmit={handleSubmit} style={{ maxWidth: '500px', margin: 'var(--space-xl) auto 0' }}>
-        <p style={{ marginTop: 'var(--space-md)', fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', textAlign: 'center' }}>
-          NFC UID: <strong style={{ color: 'var(--brand-primary)' }}>{formData.uid || "(одоогоор тодорхойгүй)"}</strong>
+      <form onSubmit={handleSubmit} className="max-w-[500px] mx-auto mt-8">
+        <p className="mt-4 text-sm text-slate-400 dark:text-slate-400 text-center">
+          NFC UID: <strong className="text-amber-300 dark:text-amber-300">{formData.uid || "(одоогоор тодорхойгүй)"}</strong>
         </p>
         <p>
           <input
@@ -127,15 +126,19 @@ function RegisterPage() {
           />
         </p>
         {error && (
-          <p style={{ color: '#dc2626', marginBottom: 'var(--space-sm)' }}>
+          <p className="text-red-500 dark:text-red-500 mb-2">
             {error}
           </p>
         )}
-        <button type="submit" disabled={loading} style={{ width: '100%', marginTop: 'var(--space-sm)' }}>
+        <button 
+          type="submit" 
+          disabled={loading} 
+          className={`btn w-full mt-2 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+        >
           {loading ? 'Бүртгэж байна...' : 'Бүртгүүлэх'}
         </button>
       </form>
-      <p style={{ marginTop: 'var(--space-lg)', fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', textAlign: 'center', lineHeight: 'var(--line-height-relaxed)' }}>
+      <p className="mt-6 text-sm text-slate-400 dark:text-slate-400 text-center leading-relaxed">
         Бүртгэлийн дараа NFC writer-аар UID-гаа дахин уншуулж profile линк бичүүлнэ.
       </p>
     </div>
@@ -143,4 +146,3 @@ function RegisterPage() {
 }
 
 export default RegisterPage;
-
