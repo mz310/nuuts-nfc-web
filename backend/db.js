@@ -39,6 +39,30 @@ CREATE TABLE IF NOT EXISTS totals (
 );
 `);
 
+// Migration: Add new columns to users table if they don't exist
+try {
+  const tableInfo = db.prepare("PRAGMA table_info(users)").all();
+  const columns = tableInfo.map(col => col.name);
+
+  if (!columns.includes('phone')) {
+    db.exec("ALTER TABLE users ADD COLUMN phone TEXT");
+  }
+  if (!columns.includes('gmail')) {
+    db.exec("ALTER TABLE users ADD COLUMN gmail TEXT");
+  }
+  if (!columns.includes('socials')) {
+    db.exec("ALTER TABLE users ADD COLUMN socials TEXT");
+  }
+  if (!columns.includes('bio')) {
+    db.exec("ALTER TABLE users ADD COLUMN bio TEXT");
+  }
+  if (!columns.includes('avatar_url')) {
+    db.exec("ALTER TABLE users ADD COLUMN avatar_url TEXT");
+  }
+} catch (e) {
+  console.error('Migration error:', e);
+}
+
 // ---- Select helpers ----
 function getUserByUID(uid) {
   return db
@@ -49,9 +73,37 @@ function getUserByUID(uid) {
 function getUserFullById(id) {
   return db
     .prepare(
-      "SELECT id, name, nickname, profession, uid FROM users WHERE id = ?"
+      "SELECT id, name, nickname, profession, uid, phone, gmail, socials, bio, avatar_url FROM users WHERE id = ?"
     )
     .get(id);
+}
+
+function getUserByIdWithTotal(id) {
+  const user = getUserFullById(id);
+  if (!user) return null;
+
+  const total = getTotalByUserId(id);
+  let socials = null;
+  if (user.socials) {
+    try {
+      socials = JSON.parse(user.socials);
+    } catch (e) {
+      socials = null;
+    }
+  }
+
+  return {
+    id: user.id,
+    fullName: user.name,
+    nickname: user.nickname || null,
+    profession: user.profession || null,
+    phone: user.phone || null,
+    gmail: user.gmail || null,
+    socials: socials || {},
+    bio: user.bio || null,
+    avatarUrl: user.avatar_url || null,
+    totalContribution: total ? total.total : 0
+  };
 }
 
 function getTotalByUserId(id) {
@@ -126,7 +178,7 @@ function generateRandomUID() {
   return uid;
 }
 
-function createUserWithUid({ name, nickname, profession, uid }) {
+function createUserWithUid({ name, nickname, profession, phone, gmail, bio, avatarUrl, socials, uid }) {
   const tx = db.transaction(() => {
     // If no UID provided, generate a random one (simulating NFC tag ID)
     let finalUID = uid;
@@ -145,12 +197,24 @@ function createUserWithUid({ name, nickname, profession, uid }) {
       // If UID provided, clear it from any other user first
       db.prepare("UPDATE users SET uid=NULL WHERE uid=?").run(finalUID);
     }
+
+    const socialsJson = socials && Object.keys(socials).length > 0 ? JSON.stringify(socials) : null;
     
     const info = db
       .prepare(
-        "INSERT INTO users(name, nickname, profession, uid) VALUES (?,?,?,?)"
+        "INSERT INTO users(name, nickname, profession, phone, gmail, bio, avatar_url, socials, uid) VALUES (?,?,?,?,?,?,?,?,?)"
       )
-      .run(name, nickname || null, profession || null, finalUID);
+      .run(
+        name, 
+        nickname || null, 
+        profession || null, 
+        phone || null,
+        gmail || null,
+        bio || null,
+        avatarUrl || null,
+        socialsJson || null,
+        finalUID
+      );
     return { id: info.lastInsertRowid, uid: finalUID };
   });
   return tx();
@@ -197,6 +261,7 @@ module.exports = {
   db,
   getUserByUID,
   getUserFullById,
+  getUserByIdWithTotal,
   getTotalByUserId,
   getLeaderboardRows,
   searchUsers,

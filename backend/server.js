@@ -8,6 +8,7 @@ const { postScan, getLastScanApi, getNdefUrl } = require("./routes/api");
 const {
   getLeaderboard,
   getUserProfile,
+  getUserById,
   checkRegister,
   postRegister,
   getResolveUID
@@ -47,6 +48,7 @@ app.use(
 // Public API routes
 app.get("/api/leaderboard", getLeaderboard);
 app.get("/api/user/:id", getUserProfile);
+app.get("/api/users/:id", getUserById);
 app.get("/api/register/check", checkRegister);
 app.post("/api/register", postRegister);
 app.get("/api/resolve/:uid", getResolveUID);
