@@ -1,5 +1,4 @@
-// server.js — entry, зөвхөн wiring хийнэ
-// PRESERVED FROM ORIGINAL - Core structure unchanged, adapted for API
+// server.js — Express server entry point
 
 const express = require("express");
 const session = require("express-session");

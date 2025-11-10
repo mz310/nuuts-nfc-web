@@ -1,4 +1,4 @@
-// api.js — API client for backend
+// api.js — API client for backend communication
 const API_BASE = import.meta.env.VITE_API_BASE || '/api';
 
 async function apiRequest(endpoint, options = {}) {

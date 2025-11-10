@@ -1,5 +1,4 @@
 // routes/public.js — Public API endpoints
-// PRESERVED FROM ORIGINAL - Core logic unchanged, converted to JSON API
 
 const {
   getLeaderboardRows,
@@ -61,7 +60,7 @@ function checkRegister(req, res) {
 
 // POST /api/register
 function postRegister(req, res) {
-  const uid = (req.body.uid || "").toString().toUpperCase().trim();
+  const uid = (req.body.uid || "").toString().trim();
   const name = (req.body.name || "").toString().trim();
   const nickname = (req.body.nickname || "").toString().trim();
   const profession = (req.body.profession || "").toString().trim();
@@ -70,16 +69,17 @@ function postRegister(req, res) {
     return res.status(400).json({ error: "Нэр шаардлагатай." });
   }
 
-  const userId = createUserWithUid({
+  const result = createUserWithUid({
     name,
     nickname,
     profession,
-    uid
+    uid: uid || null
   });
 
   res.json({
     success: true,
-    userId,
+    userId: result.id,
+    uid: result.uid,
     message: "Бүртгэл амжилттай"
   });
 }

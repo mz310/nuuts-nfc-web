@@ -1,5 +1,4 @@
 // routes/admin.js — Admin API endpoints
-// PRESERVED FROM ORIGINAL - Core logic unchanged, converted to JSON API
 
 const {
   searchUsers,
@@ -75,22 +74,24 @@ function postQuickAddTx(req, res) {
 
 // POST /api/admin/quick-register-link
 function postQuickRegisterLink(req, res) {
-  const uid = (req.body.uid || "").toString().trim().toUpperCase();
+  // Convert empty UID string to null so quickRegisterLink can generate random UID
+  const uidRaw = (req.body.uid || "").toString().trim();
+  const uid = uidRaw === "" ? null : uidRaw;
   const name = (req.body.name || "").toString().trim();
   const nickname = (req.body.nickname || "").toString().trim();
   const profession = (req.body.profession || "").toString().trim();
 
-  if (!uid || !name) {
+  if (!name) {
     return res.status(400).json({
-      error: "UID/нэр хоосон."
+      error: "Нэр хоосон."
     });
   }
 
   try {
-    quickRegisterLink({ uid, name, nickname, profession });
+    const finalUID = quickRegisterLink({ uid, name, nickname, profession });
     return res.json({
       success: true,
-      message: `'${name}' бүртгэж UID ${uid} холбосон.`
+      message: `'${name}' бүртгэж UID ${finalUID} холбосон.`
     });
   } catch (e) {
     return res.status(500).json({

@@ -3,30 +3,6 @@ import { useSearchParams } from 'react-router-dom';
 import { api } from '../api';
 import './RegisterPage.css';
 
-/**
- * RegisterPage - NFC Registration Form
- * 
- * BUG FIX SUMMARY:
- * ================
- * Root Cause: CSS in HomePage.css was hiding ALL .hero elements without .visible class.
- *             Only HomePage uses the scroll animation hook to add .visible class.
- *             RegisterPage, AboutPage, and ProfilePage use .hero but don't use the hook,
- *             so they were being hidden by the CSS rule.
- * 
- * Fix Applied:
- * 1. Changed CSS selector from .hero:not(.visible) to .scroll-animated:not(.visible)
- * 2. Added .scroll-animated class only to HomePage elements that use the scroll hook
- * 3. Other pages' .hero elements now remain visible by default
- * 4. Improved error handling - show errors instead of silently failing
- * 5. Added loading state indicator while checking UID
- * 
- * Files Modified:
- * - frontend/src/pages/HomePage.css: Scoped scroll animation CSS to .scroll-animated class
- * - frontend/src/pages/HomePage.jsx: Added .scroll-animated class to hero and board elements
- * - frontend/src/pages/RegisterPage.jsx: Improved error handling and loading states
- * 
- * Result: Registration form and other pages now stay visible and stable.
- */
 function RegisterPage() {
   const [searchParams] = useSearchParams();
   const uid = (searchParams.get('uid') || '').toUpperCase();
@@ -47,7 +23,6 @@ function RegisterPage() {
     if (uid) {
       checkUID();
     }
-    // Note: No auto-hide or redirect logic here - form stays visible
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uid]);
 
@@ -56,11 +31,9 @@ function RegisterPage() {
       const data = await api.checkRegister(uid);
       setCheckData(data);
       setFormData(prev => ({ ...prev, uid: uid }));
-      // Clear any previous errors on successful check
       setError(null);
     } catch (error) {
       console.error('Failed to check UID:', error);
-      // Show error message instead of hiding the form
       setError(error.message || 'UID шалгахад алдаа гарлаа. Дахин оролдоно уу.');
     }
   }
@@ -106,7 +79,6 @@ function RegisterPage() {
     );
   }
 
-  // Determine message based on check result
   let msg = "NFC UID параметрээр ирвэл автоматаар бөглөгдөнө.";
   if (checkData?.message) {
     msg = checkData.message;
@@ -114,7 +86,6 @@ function RegisterPage() {
     msg = "Энэ NFC-г өөртэйгөө холбож бүртгүүлэх боломжтой. Бүртгэл хийсний дараа writer-аар дахин уншуул.";
   }
 
-  // Show loading state while checking UID (only if UID exists and we're checking)
   const isCheckingUID = uid && !checkData && !error;
 
   return (

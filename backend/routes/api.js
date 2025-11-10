@@ -1,5 +1,4 @@
-// routes/api.js — ESP32 / gateway API-ууд
-// PRESERVED FROM ORIGINAL - Core logic unchanged
+// routes/api.js — ESP32 / Gateway API endpoints
 
 const {
   getUserByUID,
@@ -30,7 +29,6 @@ function postScan(req, res) {
     if (user && amount > 0) {
       insertTransactionAndUpdateTotal(user.id, amount);
       resp.amount = amount;
-      // нийт дүнг front талд leaderboard-с харах тул энд заавал шалгах албагүй
     } else {
       resp.note = "amount ignored (no user linked or amt<=0)";
     }
@@ -57,8 +55,7 @@ function getLastScanApi(req, res) {
 }
 
 // GET /api/ndef-url?uid=...
-// exists:true  -> url: /u/:id
-// exists:false -> registerUrl: /register?uid=...
+// Returns profile URL if user exists, otherwise returns registration URL
 function getNdefUrl(req, res) {
   const raw = (req.query.uid || "").toString().trim().toUpperCase();
   if (!raw) {
