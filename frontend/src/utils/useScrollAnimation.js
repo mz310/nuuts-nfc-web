@@ -2,12 +2,27 @@
 import { useEffect, useRef, useState } from 'react';
 
 export function useScrollAnimation(options = {}) {
-  const [isVisible, setIsVisible] = useState(false);
+  // Start as visible to prevent initial hide
+  const [isVisible, setIsVisible] = useState(true);
   const elementRef = useRef(null);
 
   useEffect(() => {
     const element = elementRef.current;
     if (!element) return;
+
+    // Check if element is already in viewport
+    const rect = element.getBoundingClientRect();
+    const isInViewport = rect.top < window.innerHeight && rect.bottom > 0;
+    
+    if (isInViewport) {
+      setIsVisible(true);
+      // If once is true (default), don't set up observer
+      if (options.once !== false) {
+        return;
+      }
+    } else {
+      setIsVisible(false);
+    }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -22,8 +37,8 @@ export function useScrollAnimation(options = {}) {
         }
       },
       {
-        threshold: options.threshold || 0.1,
-        rootMargin: options.rootMargin || '0px 0px -50px 0px',
+        threshold: options.threshold || 0.01,
+        rootMargin: options.rootMargin || '0px',
       }
     );
 

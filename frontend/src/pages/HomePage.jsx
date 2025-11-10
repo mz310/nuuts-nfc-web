@@ -41,11 +41,12 @@ function HomePage() {
     }
   }
 
-  const [heroRef, heroVisible] = useScrollAnimation({ threshold: 0.2 });
-  const [boardRef, boardVisible] = useScrollAnimation({ threshold: 0.1 });
+  // Use scroll animation for smooth reveal
+  const [heroRef, heroVisible] = useScrollAnimation({ threshold: 0.01 });
+  const [boardRef, boardVisible] = useScrollAnimation({ threshold: 0.01 });
 
   const heroSection = (
-    <div ref={heroRef} className={`hero ${heroVisible ? 'visible' : ''}`}>
+    <div ref={heroRef} className={`hero scroll-animated ${heroVisible ? 'visible' : ''}`}>
       <div className="hero-title">Мазаалай баатрууд</div>
       <div className="hero-sub">
         Байгаль, зэрлэг амьтны төлөө тууштай зүтгэж буй хүмүүсийн амьд жагсаалт
@@ -101,7 +102,7 @@ function HomePage() {
   return (
     <>
       {heroSection}
-      <div ref={boardRef} className={`board ${boardVisible ? 'visible' : ''}`}>
+      <div ref={boardRef} className={`board scroll-animated ${boardVisible ? 'visible' : ''}`}>
         <div className="board-header">
           <div>
             <div className="board-title">LIVE SCOREBOARD</div>
