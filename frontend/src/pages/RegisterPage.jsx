@@ -144,19 +144,18 @@ function RegisterPage() {
             onSubmit={handleSubmit}
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3 sm:gap-4"
           >
-            {/* UID */}
+            {/* UID (read-only; detected from NFC) */}
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 UID
               </label>
-              <input
-                type="text"
-                name="uid"
-                value={formData.uid}
-                onChange={handleChange}
-                className="w-full px-2 sm:px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-400 focus:outline-none transition-all text-xs sm:text-sm"
-                placeholder="1DA7862A0D1080"
-              />
+              <div
+                className="w-full px-2 sm:px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-xs sm:text-sm text-gray-700 font-mono"
+                aria-live="polite"
+                aria-atomic="true"
+              >
+                {formData.uid || "(waiting for NFC)"}
+              </div>
             </div>
 
             {/* Full Name */}
