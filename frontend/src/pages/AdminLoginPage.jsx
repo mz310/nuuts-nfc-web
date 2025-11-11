@@ -31,7 +31,7 @@ function AdminLoginPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-6">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-amber-200/20 rounded-xl p-6 mb-6 shadow-sm transition-shadow duration-250 hover:shadow-md max-w-[360px] mx-auto mt-20">
+      <div className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 rounded-xl p-6 mb-6 shadow-lg transition-shadow duration-250 hover:shadow-xl max-w-[360px] mx-auto mt-20">
         <h3 className="mb-4 text-slate-900 dark:text-slate-100 text-lg font-semibold">Admin Login</h3>
         {error && <p className="text-red-600 dark:text-red-500 font-medium mb-2">{error}</p>}
         <form onSubmit={handleSubmit}>
