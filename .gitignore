@@ -16,7 +16,7 @@ frontend/dist/
 frontend/build/
 
 # Database (optional - uncomment if you don't want to track DB)
-# backend/leaderboard.sqlite3
+backend/leaderboard.sqlite3
 
 # IDE
 .vscode/
