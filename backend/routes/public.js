@@ -5,7 +5,7 @@ const {
   getUserFullById,
   getTotalByUserId,
   createUserWithUid,
-  getUserByUID
+  getUserByUID,
 } = require("../db");
 
 // GET /api/leaderboard
@@ -36,8 +36,11 @@ function getUserProfile(req, res) {
     nickname: user.nickname,
     profession: user.profession,
     uid: user.uid,
+    phone: user.phone || null,
+    bio: user.bio || null,
+    gender: user.gender || "other",
     label,
-    total
+    total,
   });
 }
 
@@ -54,7 +57,7 @@ function checkRegister(req, res) {
   res.json({
     uid: uid || null,
     exists: !!exists,
-    message: msg
+    message: msg,
   });
 }
 
@@ -64,23 +67,34 @@ function postRegister(req, res) {
   const name = (req.body.name || "").toString().trim();
   const nickname = (req.body.nickname || "").toString().trim();
   const profession = (req.body.profession || "").toString().trim();
+  const phone = (req.body.phone || "").toString().trim();
+  const bio = (req.body.bio || "").toString().trim();
+  const gender = (req.body.gender || "other").toString().trim().toLowerCase();
 
   if (!name) {
     return res.status(400).json({ error: "Нэр шаардлагатай." });
   }
 
+  // Validate gender — allowed values: male, female, other
+  const allowed = ["male", "female", "other"];
+  const chosenGender = allowed.includes(gender) ? gender : "other";
+
   const result = createUserWithUid({
     name,
     nickname,
     profession,
-    uid: uid || null
+    uid: uid || null,
+    // currently phone and bio are optional; gender defaults to 'other' if not valid
+    phone: phone || null,
+    bio: bio || null,
+    gender: chosenGender,
   });
 
   res.json({
     success: true,
     userId: result.id,
     uid: result.uid,
-    message: "Бүртгэл амжилттай"
+    message: "Бүртгэл амжилттай",
   });
 }
 
@@ -92,9 +106,16 @@ function getResolveUID(req, res) {
   }
   const user = getUserByUID(raw);
   if (user) {
-    return res.json({ exists: true, userId: user.id, redirect: `/u/${user.id}` });
+    return res.json({
+      exists: true,
+      userId: user.id,
+      redirect: `/u/${user.id}`,
+    });
   }
-  return res.json({ exists: false, redirect: `/register?uid=${encodeURIComponent(raw)}` });
+  return res.json({
+    exists: false,
+    redirect: `/register?uid=${encodeURIComponent(raw)}`,
+  });
 }
 
 module.exports = {
@@ -102,6 +123,5 @@ module.exports = {
   getUserProfile,
   checkRegister,
   postRegister,
-  getResolveUID
+  getResolveUID,
 };
-
