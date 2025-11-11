@@ -186,7 +186,7 @@ function AdminDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-6">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-6 pt-24">
       <header className="flex justify-between items-center mb-8 pb-4 border-b border-slate-200 dark:border-amber-200/20">
         <div className="text-xl font-semibold text-slate-900 dark:text-slate-100">Admin · Mazaalai Conservation</div>
         <div className="flex gap-4 items-center">
@@ -206,7 +206,7 @@ function AdminDashboardPage() {
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-amber-200/20 rounded-xl p-6 shadow-sm transition-shadow duration-250 hover:shadow-md">
+        <div className="lg:col-span-3 bg-white/70 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 rounded-xl p-6 shadow-sm transition-shadow duration-250 hover:shadow-md">
           <h3 className="mb-4 text-slate-900 dark:text-slate-100 text-lg font-semibold">Live scan</h3>
           <p className="text-slate-900 dark:text-slate-100">
             Сүүлд ирсэн UID: <b>{lastScan?.uid || '—'}</b>
@@ -222,7 +222,7 @@ function AdminDashboardPage() {
           <p className="text-slate-600 dark:text-slate-400 text-xs">Сүүлд уншсан UID-аар доорх Action хэсэг автоматаар солигдоно.</p>
         </div>
 
-        <div className="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-amber-200/20 rounded-xl p-6 shadow-sm transition-shadow duration-250 hover:shadow-md">
+        <div className="lg:col-span-4 bg-white/70 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 rounded-xl p-6 shadow-sm transition-shadow duration-250 hover:shadow-md">
           <h3 className="mb-4 text-slate-900 dark:text-slate-100 text-lg font-semibold">Action</h3>
           {txForm.uid && (
             <form id="formAddTx" onSubmit={handleQuickAddTx}>
@@ -336,7 +336,7 @@ function AdminDashboardPage() {
           )}
         </div>
 
-        <div className="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-amber-200/20 rounded-xl p-6 shadow-sm transition-shadow duration-250 hover:shadow-md">
+        <div className="lg:col-span-5 bg-white/70 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 rounded-xl p-6 shadow-sm transition-shadow duration-250 hover:shadow-md">
           <h3 className="mb-4 text-slate-900 dark:text-slate-100 text-lg font-semibold">Хэрэглэгчид</h3>
           <form onSubmit={(e) => { e.preventDefault(); loadDashboard(); }}>
             <div className="flex gap-2 flex-wrap mb-2">
