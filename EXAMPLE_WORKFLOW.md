@@ -20,10 +20,10 @@ We want to:
 
 ## Prerequisites
 
-✅ Backend running on `http://localhost:8000`
-✅ Frontend running on `http://localhost:5173`
-✅ Node.js installed
-✅ PowerShell or cmd available
+Backend running on `http://localhost:8000`
+Frontend running on `http://localhost:5173`
+Node.js installed
+or cmd available
 
 ---
 
@@ -86,8 +86,7 @@ Output:
 Raw UID: 1D:A7:86:2A:0D:10:80
 Normalized UID: 1DA7862A0D1080
 ```
-
-✅ **Note:** From now on, use `1DA7862A0D1080` (the normalized version) for all API calls.
+ **Note:** From now on, use `1DA7862A0D1080` (the normalized version) for all API calls.
 
 ---
 
@@ -112,7 +111,7 @@ Output:
 }
 ```
 
-✅ **Analysis:** `"exists": false` means this UID is not yet registered. We need to register it in the next step.
+**Analysis:** `"exists": false` means this UID is not yet registered. We need to register it in the next step.
 
 ---
 
@@ -147,8 +146,7 @@ Output:
   "message": "Бүртгэл амжилттай"
 }
 ```
-
-✅ **Analysis:**
+**Analysis:**
 
 - `"success": true` → registration succeeded.
 - `"userId": 1` → the user was assigned ID 1.
@@ -176,8 +174,7 @@ Output:
   "url": "http://localhost:8000/u/1"
 }
 ```
-
-✅ **Analysis:** Now `"exists": true` and we have a profile URL pointing to user ID 1.
+ **Analysis:** Now `"exists": true` and we have a profile URL pointing to user ID 1.
 
 ---
 
@@ -212,8 +209,7 @@ Output:
   "amount": 50
 }
 ```
-
-✅ **Analysis:**
+**Analysis:**
 
 - `"linked": true` → the UID is registered (so points can be credited).
 - `"amount": 50` → 50 points were successfully added.
@@ -251,8 +247,7 @@ Output:
   "amount": 25
 }
 ```
-
-✅ **Analysis:** Another 25 points credited. User should now have 50 + 25 = 75 total.
+**Analysis:** Another 25 points credited. User should now have 50 + 25 = 75 total.
 
 ---
 
@@ -280,7 +275,7 @@ Output:
 }
 ```
 
-✅ **Analysis:**
+**Analysis:**
 
 - `"total": 75` → correct! (50 + 25 = 75 points)
 - Profile shows all registered details.
@@ -312,8 +307,7 @@ Output (example with 2 users):
   }
 ]
 ```
-
-✅ **Analysis:** Baasan is ranked #2 on the leaderboard with 75 points.
+**Analysis:** Baasan is ranked #2 on the leaderboard with 75 points.
 
 ---
 

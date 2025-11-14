@@ -17,8 +17,8 @@ function Layout() {
               className="w-10 h-10 rounded-full object-cover border-2 border-amber-400 dark:border-amber-500 shadow-[0_0_18px_rgba(255,240,1,0.16)] transition-all duration-250"
             />
             <div>
-              <div className="text-[11px] tracking-wider uppercase text-amber-500 dark:text-amber-400">MAZAALAI GUARDIANS</div>
-              <div className="text-lg font-bold tracking-wide text-slate-900 dark:text-slate-100">Leaderboard</div>
+              <div className="text-[11px] tracking-wider uppercase text-amber-500 dark:text-amber-400">Secret Rangers</div>
+              <div className="text-lg font-bold tracking-wide text-slate-900 dark:text-slate-100">WE ARE SILENT HEROES</div>
               {/* <div className="text-[10px] text-slate-600 dark:text-slate-400 leading-snug">
                 Байгаль, зэрлэг амьтны төлөө тууштай зүтгэж буй хүмүүсийн амьд жагсаалт<span className="pulse-dot"></span>
               </div> */}
