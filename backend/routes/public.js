@@ -1,5 +1,3 @@
-// routes/public.js — Public API endpoints
-
 const {
   getLeaderboardRows,
   getUserFullById,
@@ -36,7 +34,7 @@ function getUserProfile(req, res) {
     name: user.name,
     nickname: user.nickname,
     profession: user.profession,
-    avatar_url: user.avatar_url || null,
+    industry: user.industry || null,
     uid: user.uid,
     phone: user.phone || null,
     bio: user.bio || null,
@@ -70,13 +68,7 @@ function postRegister(req, res) {
   const name = (req.body.name || "").toString().trim();
   const nickname = (req.body.nickname || "").toString().trim();
   const profession = (req.body.profession || "").toString().trim();
-  const avatarUrlRaw =
-    typeof req.body.avatar_url === "string"
-      ? req.body.avatar_url
-      : typeof req.body.avatarUrl === "string"
-      ? req.body.avatarUrl
-      : "";
-  const avatarUrl = avatarUrlRaw.toString().trim();
+  const industry = (req.body.industry || "").toString().trim();
   const phone = (req.body.phone || "").toString().trim();
   const bio = (req.body.bio || "").toString().trim();
   const gender = (req.body.gender || "other").toString().trim().toLowerCase();
@@ -85,31 +77,36 @@ function postRegister(req, res) {
     return res.status(400).json({ error: "Нэр шаардлагатай." });
   }
 
-  // Validate gender — allowed values: male, female, other
+  if (!uid) {
+    return res.status(400).json({ error: "UID шаардлагатай. NFC reader-ээс UID авах шаардлагатай." });
+  }
+
   const allowed = ["male", "female", "other"];
   const chosenGender = allowed.includes(gender) ? gender : "other";
 
-  const result = createUserWithUid({
-    name,
-    nickname,
-    profession,
-    avatarUrl: avatarUrl || null,
-    uid: uid || null,
-    // currently phone and bio are optional; gender defaults to 'other' if not valid
-    phone: phone || null,
-    bio: bio || null,
-    gender: chosenGender,
-  });
+  try {
+    const result = createUserWithUid({
+      name,
+      nickname,
+      profession,
+      industry: industry || null,
+      uid: uid,
+      phone: phone || null,
+      bio: bio || null,
+      gender: chosenGender,
+    });
 
-  res.json({
-    success: true,
-    userId: result.id,
-    uid: result.uid,
-    message: "Бүртгэл амжилттай",
-  });
+    res.json({
+      success: true,
+      userId: result.id,
+      uid: result.uid,
+      message: "Бүртгэл амжилттай",
+    });
+  } catch (error) {
+    return res.status(400).json({ error: error.message });
+  }
 }
 
-// GET /api/resolve/:uid — NFC direct resolve
 function getResolveUID(req, res) {
   const raw = (req.params.uid || "").toString().trim().toUpperCase();
   if (!raw) {
@@ -129,20 +126,17 @@ function getResolveUID(req, res) {
   });
 }
 
-// PUT /api/users/:id
 function putUserProfile(req, res) {
   const id = parseInt(req.params.id, 10);
   if (!id) {
     return res.status(400).json({ ok: false, error: { message: "Invalid user ID" } });
   }
 
-  // Extract only editable fields from request body
   const {
     name,
     nickname,
     profession,
-    avatar_url,
-    avatarUrl,
+    industry,
     phone,
     bio,
     gender,
@@ -153,13 +147,11 @@ function putUserProfile(req, res) {
   }
 
   try {
-    const resolvedAvatar =
-      avatar_url !== undefined ? avatar_url : avatarUrl;
     const updatedUser = updateUser(id, {
       name,
       nickname,
       profession,
-      avatarUrl: resolvedAvatar,
+      industry,
       phone,
       bio,
       gender,
@@ -181,6 +173,7 @@ function putUserProfile(req, res) {
         name: updatedUser.name,
         nickname: updatedUser.nickname,
         profession: updatedUser.profession,
+        industry: updatedUser.industry || null,
         uid: updatedUser.uid,
         phone: updatedUser.phone || null,
         bio: updatedUser.bio || null,

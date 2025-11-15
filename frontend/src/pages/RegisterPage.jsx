@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useEffect, useState, useCallback } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { api } from "../api";
+import { getAvailableIndustries } from "../utils/industryImages";
 
 function RegisterPage() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const uid = (searchParams.get("uid") || "").toUpperCase();
 
   const [formData, setFormData] = useState({
@@ -11,6 +13,7 @@ function RegisterPage() {
     name: "",
     nickname: "",
     profession: "",
+    industry: "",
     phone: "",
     bio: "",
     gender: "other",
@@ -21,14 +24,7 @@ function RegisterPage() {
   const [success, setSuccess] = useState(false);
   const [userId, setUserId] = useState(null);
 
-  useEffect(() => {
-    if (uid) {
-      checkUID();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [uid]);
-
-  async function checkUID() {
+  const checkUID = useCallback(async () => {
     try {
       const data = await api.checkRegister(uid);
       setCheckData(data);
@@ -40,22 +36,39 @@ function RegisterPage() {
         error.message || "UID шалгахад алдаа гарлаа. Дахин оролдоно уу."
       );
     }
-  }
+  }, [uid]);
+
+  useEffect(() => {
+    if (uid) {
+      setFormData((prev) => ({ ...prev, uid: uid }));
+      checkUID();
+    }
+  }, [uid, checkUID]);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
+    const finalUID = formData.uid || uid;
+    if (!finalUID || !finalUID.trim()) {
+      setError("UID шаардлагатай. NFC reader-ээс UID уншуулах шаардлагатай.");
+      setLoading(false);
+      return;
+    }
+
     try {
       const data = await api.postRegister({
         ...formData,
-        uid: formData.uid || uid,
-        // ensure gender is one of allowed values
-        gender: (formData.gender || "other").toString().toLowerCase(),
+        uid: finalUID,
+        gender: (formData.gender || "other").toString().toLowerCase()
       });
-      setSuccess(true);
-      setUserId(data.userId);
+      if (data.userId) {
+        navigate(`/u/${data.userId}`);
+      } else {
+        setSuccess(true);
+        setUserId(data.userId);
+      }
     } catch (error) {
       setError(error.message);
       setLoading(false);
@@ -124,7 +137,7 @@ function RegisterPage() {
             <p className="text-sm text-slate-700 dark:text-slate-300">
               <strong className="font-semibold">NFC UID:</strong>{" "}
               <span className="text-amber-600 dark:text-amber-400 font-mono text-sm">
-                {formData.uid || "(waiting)"}
+                {formData.uid || "(UID оруулах шаардлагатай)"}
               </span>
             </p>
             {isCheckingUID && (
@@ -156,7 +169,7 @@ function RegisterPage() {
                 aria-live="polite"
                 aria-atomic="true"
               >
-                {formData.uid || "(waiting for NFC)"}
+                {formData.uid || "(UID оруулах шаардлагатай)"}
               </div>
             </div>
 
@@ -204,6 +217,26 @@ function RegisterPage() {
                 className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-amber-500 dark:focus:ring-amber-400 focus:border-amber-500 dark:focus:border-amber-400 focus:outline-none transition-all text-sm"
                 placeholder="Guard"
               />
+            </div>
+
+            {/* Industry */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Industry
+              </label>
+              <select
+                name="industry"
+                value={formData.industry}
+                onChange={handleChange}
+                className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-amber-500 dark:focus:ring-amber-400 focus:border-amber-500 dark:focus:border-amber-400 focus:outline-none transition-all text-sm"
+              >
+                <option value="">Select industry</option>
+                {getAvailableIndustries().map((ind) => (
+                  <option key={ind} value={ind}>
+                    {ind}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Phone */}

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { useScrollAnimation } from '../utils/useScrollAnimation';
+import { getIndustryImage } from '../utils/industryImages';
 
 function getClockLabel() {
   const d = new Date();
@@ -84,11 +85,13 @@ function HomePage() {
 
   const renderAvatar = (row, size = 'lg') => {
     const baseClass = `hp-avatar ${size}`;
-    if (row && row.avatarUrl) {
+    const avatarImg = row?.industry ? getIndustryImage(row.industry) : null;
+    
+    if (row && avatarImg) {
       return (
         <div className={baseClass}>
           <img
-            src={row.avatarUrl}
+            src={avatarImg}
             alt={row.label ? `${row.label} avatar` : 'Player avatar'}
           />
         </div>

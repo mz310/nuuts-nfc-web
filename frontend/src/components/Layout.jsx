@@ -91,10 +91,12 @@ function Layout() {
             </a>
           </div>
           <div>
+          <a href ="https://maps.app.goo.gl/11tzLazttDeyid6a9"target="_blank" rel="noopener" className="text-amber-500 dark:text-amber-400 no-underline hover:underline">
             <svg className="w-3.5 h-3.5 inline-block align-[-2px] mr-1 fill-amber-500 dark:fill-amber-400" viewBox="0 0 24 24">
-              <path d="M12 2a7 7 0 0 1 7 7c0 4.05-3.64 8.38-6.02 10.64a1.3 1.3 0 0 1-1.96 0C8.64 17.38 5 13.05 5 9a7 7 0 0 1 7-7zm0 2a5 5 0 0 0-5 5c0 2.91 2.37 6.29 5 8.97 2.63-2.68 5-6.06 5-8.97a5 5 0 0 0-5-5zm0 3a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/>
+               <path d="M12 2a7 7 0 0 1 7 7c0 4.05-3.64 8.38-6.02 10.64a1.3 1.3 0 0 1-1.96 0C8.64 17.38 5 13.05 5 9a7 7 0 0 1 7-7zm0 2a5 5 0 0 0-5 5c0 2.91 2.37 6.29 5 8.97 2.63-2.68 5-6.06 5-8.97a5 5 0 0 0-5-5zm0 3a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/>
             </svg>
             "Mazaalai Hub" — хамгаалалтын бүсийн хамтын шүтээн
+            </a>
           </div>
         </div>
       </footer>

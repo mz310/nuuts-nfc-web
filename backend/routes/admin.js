@@ -80,17 +80,17 @@ function postQuickRegisterLink(req, res) {
   const name = (req.body.name || "").toString().trim();
   const nickname = (req.body.nickname || "").toString().trim();
   const profession = (req.body.profession || "").toString().trim();
-  const avatarUrlRaw =
-    typeof req.body.avatar_url === "string"
-      ? req.body.avatar_url
-      : typeof req.body.avatarUrl === "string"
-      ? req.body.avatarUrl
-      : "";
-  const avatarUrl = avatarUrlRaw.toString().trim();
+  const industry = (req.body.industry || "").toString().trim();
 
   if (!name) {
     return res.status(400).json({
       error: "Нэр хоосон."
+    });
+  }
+
+  if (!uid) {
+    return res.status(400).json({
+      error: "UID шаардлагатай. NFC reader-ээс UID авах шаардлагатай."
     });
   }
 
@@ -100,7 +100,7 @@ function postQuickRegisterLink(req, res) {
       name,
       nickname,
       profession,
-      avatarUrl: avatarUrl || null,
+      industry: industry || null,
     });
     return res.json({
       success: true,
@@ -143,4 +143,3 @@ module.exports = {
   postQuickRegisterLink,
   postDeleteUser
 };
-

@@ -49,6 +49,43 @@
     gap: 10px;
   }
 
+  /* Profile Field Styling */
+  .profile-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-height: 48px;
+  }
+
+  .profile-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #94a3b8;
+    font-weight: 500;
+  }
+
+  .profile-value {
+    font-size: 14px;
+    color: #e2e8f0;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  @media (max-width: 640px) {
+    .profile-field {
+      min-height: 44px;
+    }
+    
+    .profile-label {
+      font-size: 9px;
+    }
+    
+    .profile-value {
+      font-size: 13px;
+    }
+  }
+
   /* Header */
   .header {
     display: flex;

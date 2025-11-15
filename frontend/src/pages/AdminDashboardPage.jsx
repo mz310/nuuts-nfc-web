@@ -125,10 +125,14 @@ function AdminDashboardPage() {
   async function handleQuickRegister(e) {
     e.preventDefault();
     try {
-      // If no UID, send null - backend will generate random UID
+      if (!regForm.uid || !regForm.uid.trim()) {
+        setMessage("UID шаардлагатай. NFC reader-ээс UID авах шаардлагатай.");
+        setMessageOk(false);
+        return;
+      }
       const result = await api.adminQuickRegister({
         ...regForm,
-        uid: regForm.uid && regForm.uid.trim() ? regForm.uid.trim() : null
+        uid: regForm.uid.trim()
       });
       setMessage(result.message);
       setMessageOk(true);
@@ -300,7 +304,7 @@ function AdminDashboardPage() {
           
           {!txForm.uid && !regForm.uid && (
             <form id="formQuickRegManual" onSubmit={handleQuickRegister}>
-              <p className="text-slate-600 dark:text-slate-400 text-xs mb-2">UID байхгүй бол автоматаар random UID үүснэ (NFC tag ID-тэй адил)</p>
+              <p className="text-slate-600 dark:text-slate-400 text-xs mb-2">UID-г NFC reader-ээс авах шаардлагатай</p>
               <div className="flex gap-2 flex-wrap mb-2">
                 <input
                   name="name"
